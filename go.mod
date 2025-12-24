@@ -1,4 +1,4 @@
-module github.com/hsdfat8/telco/utils
+module github.com/hsdfat/telco/utils
 
 go 1.21
 
