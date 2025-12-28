@@ -1,4 +1,4 @@
-module github.com/hsdfat/telco/utils
+module github.com/hsdfat/telco
 
 go 1.23.0
 
