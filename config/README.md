@@ -47,7 +47,7 @@ Environment variables always override file and remote config.
 
 ```go
 import (
-    eirconfig "github.com/hsdfat8/telco/go-eir/pkg/config"
+    eirconfig "github.com/hsdfat/telco/go-eir/pkg/config"
 )
 
 func main() {
@@ -143,7 +143,7 @@ Environment variables use the pattern: `PREFIX_SECTION_FIELD`
 
 ```go
 import (
-    gwconfig "github.com/hsdfat8/telco/diam-gw/pkg/config"
+    gwconfig "github.com/hsdfat/telco/diam-gw/pkg/config"
 )
 
 loader, err := gwconfig.NewLoader(gwconfig.LoaderConfig{
