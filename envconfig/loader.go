@@ -107,9 +107,6 @@ func registerKeysRecursive(v *viper.Viper, val reflect.Value, prefix string) err
 }
 
 func getFieldName(field reflect.StructField) string {
-	if tag := field.Tag.Get("mapstructure"); tag != "" {
-		return strings.Split(tag, ",")[0]
-	}
 	if tag := field.Tag.Get("env"); tag != "" {
 		return strings.Split(tag, ",")[0]
 	}
