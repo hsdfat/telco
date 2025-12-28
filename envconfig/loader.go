@@ -27,12 +27,14 @@ func ReadConfigFrom(path string, envConfig EnvConfig) error {
 		path = pwd + "/config.env"
 	}
 
-	envConfig.DefaultValues()
 	defer envConfig.Print()
 	v := viper.New()
 
 	v.AutomaticEnv()
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_", "-", "_"))
+
+	// Set defaults BEFORE registering keys
+	envConfig.DefaultValues()
 
 	if err := registerStructKeys(v, envConfig); err != nil {
 		return fmt.Errorf("failed to register struct keys: %w", err)
@@ -100,6 +102,11 @@ func registerKeysRecursive(v *viper.Viper, val reflect.Value, prefix string) err
 			}
 		} else {
 			v.SetDefault(key, fieldVal.Interface())
+			// Bind to environment variable if env tag is present
+			if envTag := field.Tag.Get("env"); envTag != "" {
+				envVarName := strings.Split(envTag, ",")[0]
+				v.BindEnv(key, envVarName)
+			}
 		}
 	}
 
