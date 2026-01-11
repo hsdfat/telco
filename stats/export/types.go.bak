@@ -6,7 +6,7 @@ import "time"
 type MetricRecord struct {
 	CounterID  int       `json:"counter_id"`  // Unique identifier for the metric type
 	Value      uint64   `json:"value"`       // The numeric value of the metric
-	CauseCode  int       `json:"cause_code,omitempty"` // Result/status/error code (0 = no code)
+	CauseCode  string    `json:"cause_code"`  // Result code, status code, or error code (optional)
 	Hostname   string    `json:"hostname"`    // The host generating the metric
 	SystemName string    `json:"system_name"` // Service/system name (e.g., "EIR", "DIAM-GW")
 	Timestamp  time.Time `json:"timestamp"`   // When the metric was recorded

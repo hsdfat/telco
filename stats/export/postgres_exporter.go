@@ -158,7 +158,7 @@ func (e *PostgresExporter) insertBatch(ctx context.Context, records []MetricReco
 		values = append(values,
 			record.CounterID,
 			record.Value,
-			nullString(record.CauseCode),
+			nullInt(record.CauseCode),
 			record.Hostname,
 			record.SystemName,
 			record.Timestamp,
@@ -203,6 +203,14 @@ func nullString(s string) interface{} {
 		return nil
 	}
 	return s
+}
+
+// nullInt returns nil for zero values (0 = no cause code)
+func nullInt(i int) interface{} {
+	if i == 0 {
+		return nil
+	}
+	return i
 }
 
 // Name returns the exporter name

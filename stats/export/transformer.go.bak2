@@ -1,6 +1,7 @@
 package export
 
 import (
+	"fmt"
 	"time"
 
 	statsmodel "github.com/hsdfat/telco/stats"
@@ -40,42 +41,40 @@ func (t *Transformer) Transform(stats *statsmodel.ServiceStats) []MetricRecord {
 
 	// General request metrics (skip zero values for counters)
 	if stats.Requests.Total > 0 {
-		records = append(records, t.createRecord(CounterTotalRequests, stats.Requests.Total, 0, timestamp))
+		records = append(records, t.createRecord(CounterTotalRequests, float64(stats.Requests.Total), "", timestamp))
 	}
 	if stats.Requests.Success > 0 {
-		records = append(records, t.createRecord(CounterSuccessfulRequests, stats.Requests.Success, 0, timestamp))
+		records = append(records, t.createRecord(CounterSuccessfulRequests, float64(stats.Requests.Success), "", timestamp))
 	}
 	if stats.Requests.Failed > 0 {
-		records = append(records, t.createRecord(CounterFailedRequests, stats.Requests.Failed, 0, timestamp))
+		records = append(records, t.createRecord(CounterFailedRequests, float64(stats.Requests.Failed), "", timestamp))
 	}
 	if stats.Requests.Pending > 0 {
-		records = append(records, t.createRecord(CounterPendingRequests, stats.Requests.Pending, 0, timestamp))
+		records = append(records, t.createRecord(CounterPendingRequests, float64(stats.Requests.Pending), "", timestamp))
 	}
 
 	// Connection metrics (Active is gauge, others are counters)
 	// Always export Active connections (gauge - can be 0)
-	records = append(records, t.createRecord(CounterActiveConnections, stats.Connections.Active, 0, timestamp))
+	records = append(records, t.createRecord(CounterActiveConnections, float64(stats.Connections.Active), "", timestamp))
 
 	if stats.Connections.Total > 0 {
-		records = append(records, t.createRecord(CounterTotalConnections, stats.Connections.Total, 0, timestamp))
+		records = append(records, t.createRecord(CounterTotalConnections, float64(stats.Connections.Total), "", timestamp))
 	}
 	if stats.Connections.Failed > 0 {
-		records = append(records, t.createRecord(CounterFailedConnections, stats.Connections.Failed, 0, timestamp))
+		records = append(records, t.createRecord(CounterFailedConnections, float64(stats.Connections.Failed), "", timestamp))
 	}
 
 	// Performance metrics (all gauges - always export for visibility)
-	// Convert float64 to uint64 by multiplying by 100 (2 decimal precision)
-	records = append(records, t.createRecord(CounterRequestsPerSecond, uint64(stats.Performance.RequestsPerSecond*100), 0, timestamp))
+	records = append(records, t.createRecord(CounterRequestsPerSecond, stats.Performance.RequestsPerSecond, "", timestamp))
 
 	// Latency metrics (only export if we have measurements)
-	// Convert float64 to uint64 by multiplying by 100 (2 decimal precision)
 	if stats.Performance.AvgLatencyMs > 0 {
-		records = append(records, t.createRecord(CounterAvgLatencyMs, uint64(stats.Performance.AvgLatencyMs*100), 0, timestamp))
-		records = append(records, t.createRecord(CounterMinLatencyMs, uint64(stats.Performance.MinLatencyMs*100), 0, timestamp))
-		records = append(records, t.createRecord(CounterMaxLatencyMs, uint64(stats.Performance.MaxLatencyMs*100), 0, timestamp))
-		records = append(records, t.createRecord(CounterP50LatencyMs, uint64(stats.Performance.P50LatencyMs*100), 0, timestamp))
-		records = append(records, t.createRecord(CounterP95LatencyMs, uint64(stats.Performance.P95LatencyMs*100), 0, timestamp))
-		records = append(records, t.createRecord(CounterP99LatencyMs, uint64(stats.Performance.P99LatencyMs*100), 0, timestamp))
+		records = append(records, t.createRecord(CounterAvgLatencyMs, stats.Performance.AvgLatencyMs, "", timestamp))
+		records = append(records, t.createRecord(CounterMinLatencyMs, stats.Performance.MinLatencyMs, "", timestamp))
+		records = append(records, t.createRecord(CounterMaxLatencyMs, stats.Performance.MaxLatencyMs, "", timestamp))
+		records = append(records, t.createRecord(CounterP50LatencyMs, stats.Performance.P50LatencyMs, "", timestamp))
+		records = append(records, t.createRecord(CounterP95LatencyMs, stats.Performance.P95LatencyMs, "", timestamp))
+		records = append(records, t.createRecord(CounterP99LatencyMs, stats.Performance.P99LatencyMs, "", timestamp))
 	}
 
 	// EIR-specific metrics
@@ -113,65 +112,65 @@ func (t *Transformer) transformEIRStats(eirStats *statsmodel.EIRStats, timestamp
 
 		// Total per interface
 		if ifStats.Total > 0 {
-			records = append(records, t.createRecord(totalCounter, ifStats.Total, 0, timestamp))
+			records = append(records, t.createRecord(totalCounter, float64(ifStats.Total), ifName, timestamp))
 		}
 
 		// Success per interface
 		if ifStats.Success > 0 {
-			records = append(records, t.createRecord(successCounter, ifStats.Success, 0, timestamp))
+			records = append(records, t.createRecord(successCounter, float64(ifStats.Success), ifName, timestamp))
 		}
 
 		// Failed per interface
 		if ifStats.Failed > 0 {
-			records = append(records, t.createRecord(failedCounter, ifStats.Failed, 0, timestamp))
+			records = append(records, t.createRecord(failedCounter, float64(ifStats.Failed), ifName, timestamp))
 		}
 
-		// Result codes per interface (use code directly as integer)
+		// Result codes per interface
 		for code, count := range ifStats.ByResultCode {
 			if count > 0 {
-				records = append(records, t.createRecord(resultCodeCounter, count, code, timestamp))
+				causeCode := fmt.Sprintf("%s:%d", ifName, code)
+				records = append(records, t.createRecord(resultCodeCounter, float64(count), causeCode, timestamp))
 			}
 		}
 	}
 
 	// Cache statistics
 	if eirStats.CacheStats.Hits > 0 {
-		records = append(records, t.createRecord(CounterCacheHits, eirStats.CacheStats.Hits, 0, timestamp))
+		records = append(records, t.createRecord(CounterCacheHits, float64(eirStats.CacheStats.Hits), "", timestamp))
 	}
 	if eirStats.CacheStats.Misses > 0 {
-		records = append(records, t.createRecord(CounterCacheMisses, eirStats.CacheStats.Misses, 0, timestamp))
+		records = append(records, t.createRecord(CounterCacheMisses, float64(eirStats.CacheStats.Misses), "", timestamp))
 	}
 	if eirStats.CacheStats.HitRate > 0 {
-		// Convert float64 to uint64 by multiplying by 100 (2 decimal precision)
-		records = append(records, t.createRecord(CounterCacheHitRate, uint64(eirStats.CacheStats.HitRate*100), 0, timestamp))
+		records = append(records, t.createRecord(CounterCacheHitRate, eirStats.CacheStats.HitRate, "", timestamp))
 	}
 	if eirStats.CacheStats.Size > 0 {
-		records = append(records, t.createRecord(CounterCacheSize, eirStats.CacheStats.Size, 0, timestamp))
+		records = append(records, t.createRecord(CounterCacheSize, float64(eirStats.CacheStats.Size), "", timestamp))
 	}
 
 	// Database operations
 	if eirStats.DatabaseOps.Queries > 0 {
-		records = append(records, t.createRecord(CounterDBQueries, eirStats.DatabaseOps.Queries, 0, timestamp))
+		records = append(records, t.createRecord(CounterDBQueries, float64(eirStats.DatabaseOps.Queries), "", timestamp))
 	}
 	if eirStats.DatabaseOps.Inserts > 0 {
-		records = append(records, t.createRecord(CounterDBInserts, eirStats.DatabaseOps.Inserts, 0, timestamp))
+		records = append(records, t.createRecord(CounterDBInserts, float64(eirStats.DatabaseOps.Inserts), "", timestamp))
 	}
 	if eirStats.DatabaseOps.Updates > 0 {
-		records = append(records, t.createRecord(CounterDBUpdates, eirStats.DatabaseOps.Updates, 0, timestamp))
+		records = append(records, t.createRecord(CounterDBUpdates, float64(eirStats.DatabaseOps.Updates), "", timestamp))
 	}
 	if eirStats.DatabaseOps.Deletes > 0 {
-		records = append(records, t.createRecord(CounterDBDeletes, eirStats.DatabaseOps.Deletes, 0, timestamp))
+		records = append(records, t.createRecord(CounterDBDeletes, float64(eirStats.DatabaseOps.Deletes), "", timestamp))
 	}
 
 	// Equipment status distribution
 	if count, ok := eirStats.ByEquipmentStatus["whitelisted"]; ok && count > 0 {
-		records = append(records, t.createRecord(CounterWhitelisted, count, 0, timestamp))
+		records = append(records, t.createRecord(CounterWhitelisted, float64(count), "", timestamp))
 	}
 	if count, ok := eirStats.ByEquipmentStatus["blacklisted"]; ok && count > 0 {
-		records = append(records, t.createRecord(CounterBlacklisted, count, 0, timestamp))
+		records = append(records, t.createRecord(CounterBlacklisted, float64(count), "", timestamp))
 	}
 	if count, ok := eirStats.ByEquipmentStatus["greylisted"]; ok && count > 0 {
-		records = append(records, t.createRecord(CounterGreylisted, count, 0, timestamp))
+		records = append(records, t.createRecord(CounterGreylisted, float64(count), "", timestamp))
 	}
 
 	return records
