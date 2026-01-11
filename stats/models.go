@@ -138,13 +138,20 @@ type EIRStats struct {
 	ByEquipmentStatus map[string]uint64        `json:"by_equipment_status,omitempty"` // whitelisted, blacklisted, greylisted
 }
 
+// InterfaceCheckStats tracks equipment check statistics for a specific interface
+type InterfaceCheckStats struct {
+	Total        uint64         `json:"total"`
+	Success      uint64         `json:"success"`
+	Failed       uint64         `json:"failed"`
+	ByResultCode map[int]uint64 `json:"by_result_code,omitempty"` // Result code distribution
+}
+
 // EquipmentCheckStats tracks equipment check statistics
 type EquipmentCheckStats struct {
-	Total        uint64            `json:"total"`
-	Success      uint64            `json:"success"`
-	Failed       uint64            `json:"failed"`
-	ByInterface  map[string]uint64 `json:"by_interface,omitempty"`  // diameter, http
-	ByResultCode map[int]uint64    `json:"by_result_code,omitempty"` // Result code distribution
+	Total       uint64                          `json:"total"`
+	Success     uint64                          `json:"success"`
+	Failed      uint64                          `json:"failed"`
+	ByInterface map[string]InterfaceCheckStats `json:"by_interface,omitempty"` // diameter, http
 }
 
 // DatabaseOperationStats tracks database operation statistics

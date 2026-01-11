@@ -1,0 +1,73 @@
+package export
+
+import "time"
+
+// MetricRecord represents a single metric data point to be exported
+type MetricRecord struct {
+	CounterID  int       `json:"counter_id"`  // Unique identifier for the metric type
+	Value      float64   `json:"value"`       // The numeric value of the metric
+	CauseCode  string    `json:"cause_code"`  // Result code, status code, or error code (optional)
+	Hostname   string    `json:"hostname"`    // The host generating the metric
+	SystemName string    `json:"system_name"` // Service/system name (e.g., "EIR", "DIAM-GW")
+	Timestamp  time.Time `json:"timestamp"`   // When the metric was recorded
+}
+
+// ExportConfig defines configuration for the metrics export system
+type ExportConfig struct {
+	Enabled    bool              `json:"enabled" yaml:"enabled"`
+	Interval   time.Duration     `json:"interval" yaml:"interval"`         // e.g., "30s", "1m"
+	Hostname   string            `json:"hostname" yaml:"hostname"`         // Auto-detect if empty
+	SystemName string            `json:"system_name" yaml:"system_name"`   // Default: service name
+	Exporters  []ExporterConfig  `json:"exporters" yaml:"exporters"`
+}
+
+// ExporterConfig defines configuration for a single exporter
+type ExporterConfig struct {
+	Type    string                 `json:"type" yaml:"type"`       // "http", "postgres", "file"
+	Name    string                 `json:"name" yaml:"name"`
+	Enabled bool                   `json:"enabled" yaml:"enabled"`
+	Config  map[string]interface{} `json:"config" yaml:"config"`
+}
+
+// HTTPExporterConfig defines configuration for HTTP exporter
+type HTTPExporterConfig struct {
+	Name         string            `json:"name"`
+	URL          string            `json:"url"`
+	Headers      map[string]string `json:"headers"`
+	Timeout      time.Duration     `json:"timeout"`
+	RetryDelay   time.Duration     `json:"retry_delay"`
+	RetryAttempts int              `json:"retry_attempts"`
+}
+
+// PostgresExporterConfig defines configuration for PostgreSQL exporter
+type PostgresExporterConfig struct {
+	Name             string `json:"name"`
+	ConnectionString string `json:"connection_string"`
+	TableName        string `json:"table_name"`
+	BatchSize        int    `json:"batch_size"`
+	MaxRetry         int    `json:"max_retry"`
+}
+
+// FileExporterConfig defines configuration for file exporter
+type FileExporterConfig struct {
+	Name        string `json:"name"`
+	Path        string `json:"path"`
+	MaxSizeMB   int    `json:"max_size_mb"`
+	MaxBackups  int    `json:"max_backups"`
+	Compress    bool   `json:"compress"`
+}
+
+// TransformerConfig defines configuration for metric transformation
+type TransformerConfig struct {
+	IncludeCounters []int   // Only export these counter IDs (empty = all)
+	ExcludeCounters []int   // Don't export these counter IDs
+	SampleRate      float64 // For high-volume metrics (0.0-1.0)
+}
+
+// AggregatedMetricRecord for windowed metrics
+type AggregatedMetricRecord struct {
+	MetricRecord
+	WindowStart time.Time `json:"window_start"`
+	WindowEnd   time.Time `json:"window_end"`
+	SampleCount int       `json:"sample_count"` // Number of samples aggregated
+}

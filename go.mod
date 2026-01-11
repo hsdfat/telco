@@ -5,7 +5,9 @@ go 1.23.0
 require (
 	github.com/fsnotify/fsnotify v1.9.0
 	github.com/hashicorp/consul/api v1.28.2
+	github.com/lib/pq v1.10.9
 	github.com/spf13/viper v1.21.0
+	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 	gopkg.in/yaml.v3 v3.0.1
 )
 
